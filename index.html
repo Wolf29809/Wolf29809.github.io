@@ -1,2 +1,1200 @@
-<h1>Hello, World!</h1>
-<p>My website is live.</p>
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Money Moves — Your Work Passport</title>
+<style>
+  :root{
+    --paper: #E7DEC6;
+    --paper-dark: #DCD0AF;
+    --card: #FBF7EC;
+    --ink: #1B2A42;
+    --ink-soft: #56637A;
+    --stamp: #B7391A;
+    --stamp-dark: #8C2A12;
+    --euc: #3E6C5B;
+    --euc-dark: #2C4E42;
+    --gold: #C4922C;
+    --line: #C9BC97;
+    --radius: 14px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 8%, rgba(255,255,255,0.35), transparent 40%),
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.015) 0px, rgba(0,0,0,0.015) 1px, transparent 1px, transparent 3px),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding: 28px 16px 60px;
+  }
+
+  .app{ width:100%; max-width:640px; }
+
+  header.top{
+    display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px; gap:12px;
+  }
+  .brand{ display:flex; flex-direction:column; }
+  .brand .eyebrow{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase;
+    color: var(--euc-dark); font-weight:600;
+  }
+  .brand h1{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:30px; line-height:1.02; margin:2px 0 0; letter-spacing:-0.01em; }
+  .side-stats{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .wallet{
+    font-family:'IBM Plex Mono', monospace; background:var(--ink); color:var(--paper); border-radius:10px;
+    padding:10px 14px; text-align:right; min-width:110px; box-shadow: 3px 3px 0 rgba(27,42,66,0.18);
+  }
+  .wallet .label{ font-size:9px; letter-spacing:0.12em; opacity:0.7; text-transform:uppercase; }
+  .wallet .amount{ font-size:20px; font-weight:600; color: var(--gold); }
+
+  .streak-badge{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; font-weight:600; color: var(--stamp-dark);
+    background:#F4E6DE; border:1px solid var(--stamp); border-radius:20px; padding:4px 10px;
+    display:none; align-items:center; gap:4px; white-space:nowrap;
+  }
+  .streak-badge.show{ display:flex; }
+
+  .strip{ display:flex; align-items:center; justify-content:space-between; margin: 16px 4px 26px; }
+  .strip .seg{ flex:1; height:2px; background:var(--line); position:relative; top:-19px; }
+  .stamp-slot{
+    width:40px; height:40px; border-radius:50%; border:2px dashed var(--ink-soft);
+    display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono', monospace;
+    font-size:13px; font-weight:600; color:var(--ink-soft); background:var(--paper); flex-shrink:0;
+    transition: all 0.25s ease;
+  }
+  .stamp-slot.done{ border-style:solid; border-color:var(--stamp); color:var(--stamp); background:#F4E6DE; transform:rotate(-6deg) scale(1.05); }
+  .stamp-slot.active{ border-color:var(--euc); color:var(--euc); border-style:solid; }
+
+  .card{
+    background:var(--card); border-radius:var(--radius); border:1px solid var(--line);
+    box-shadow: 0 1px 0 rgba(27,42,66,0.04), 6px 6px 0 rgba(27,42,66,0.08);
+    padding:26px 24px 24px; position:relative; overflow:hidden;
+  }
+  .card.hot{ border-color: var(--stamp); box-shadow: 0 1px 0 rgba(140,42,18,0.06), 6px 6px 0 rgba(140,42,18,0.14); }
+  .card.brainy{ border-color: var(--euc); box-shadow: 0 1px 0 rgba(44,78,66,0.06), 6px 6px 0 rgba(44,78,66,0.14); }
+  .card::before{ content:""; position:absolute; inset:8px; border:1px dashed rgba(27,42,66,0.14); border-radius:8px; pointer-events:none; }
+  .corner{ position:absolute; font-family:'IBM Plex Mono', monospace; font-size:9px; letter-spacing:0.1em; color: rgba(27,42,66,0.32); text-transform:uppercase; }
+  .corner.tl{ top:14px; left:18px; }
+  .corner.tr{ top:14px; right:18px; }
+
+  .cover{ text-align:center; padding: 30px 10px 10px; }
+  .cover .icon{ font-size:52px; margin-bottom:6px; }
+  .cover h2{ font-family:'Space Grotesk', sans-serif; font-size:26px; margin:6px 0 10px; }
+  .cover p{ color:var(--ink-soft); line-height:1.55; font-size:15px; max-width:440px; margin:0 auto 22px; }
+  .cover .stages-preview{ display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; margin: 0 0 18px; text-align:left; }
+  .mini-stage{ background:var(--paper-dark); border-radius:10px; padding:12px 14px; font-size:13px; }
+  .mini-stage .num{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--stamp); font-weight:600; }
+  .mini-stage .title{ font-weight:600; margin-top:2px; }
+  .cover .mechanics{ display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:24px; }
+  .mech-chip{ font-family:'IBM Plex Mono', monospace; font-size:11px; background: var(--euc); color:#fff; padding:5px 11px; border-radius:20px; }
+  .mech-chip.gold{ background: var(--gold); }
+  .mech-chip.stamp{ background: var(--stamp); }
+
+  .stage-head{ display:flex; align-items:center; gap:10px; margin-bottom:4px; flex-wrap:wrap; }
+  .stage-head .badge{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; background:var(--euc); color:#fff;
+    padding:3px 9px; border-radius:20px; letter-spacing:0.06em; text-transform:uppercase;
+  }
+  .stage-head .badge.hot{ background:var(--stamp); }
+  .stage-head .badge.brainy{ background:var(--gold); }
+  .stage-head h2{ font-family:'Space Grotesk', sans-serif; font-size:22px; margin:0; }
+  .q-progress{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-soft); margin: 2px 0 16px; }
+
+  .scenario{ font-size:16px; line-height:1.5; margin-bottom:18px; }
+  .scenario .setup{ display:block; font-size:12px; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace; margin-bottom:6px; letter-spacing:0.02em; }
+
+  .timer-wrap{ margin-bottom:16px; }
+  .timer-lbl{ display:flex; justify-content:space-between; align-items:center; font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--stamp-dark); margin-bottom:6px; font-weight:600; }
+  .timer-track{ height:8px; background:var(--paper-dark); border-radius:5px; overflow:hidden; }
+  .timer-fill{ height:100%; background: linear-gradient(90deg, var(--gold), var(--stamp)); border-radius:5px; width:100%; }
+
+  .options{ display:flex; flex-direction:column; gap:10px; }
+  .opt{
+    text-align:left; background:#fff; border:1.5px solid var(--line); border-radius:10px; padding:13px 14px;
+    font-family:'Inter', sans-serif; font-size:14.5px; color:var(--ink); cursor:pointer;
+    transition: transform 0.12s ease, border-color 0.15s ease, background 0.15s ease;
+    display:flex; align-items:center; gap:10px;
+  }
+  .opt .letter{
+    font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:600; width:23px; height:23px;
+    border-radius:50%; border:1.5px solid var(--ink-soft); display:flex; align-items:center; justify-content:center;
+    flex-shrink:0; color:var(--ink-soft);
+  }
+  .opt:hover:not(:disabled){ border-color:var(--euc); transform: translateX(2px); }
+  .opt:focus-visible{ outline: 3px solid var(--euc); outline-offset:2px; }
+  .opt:disabled{ cursor:default; }
+  .opt.correct{ background:#EAF3EC; border-color:var(--euc); }
+  .opt.correct .letter{ background:var(--euc); border-color:var(--euc); color:#fff; }
+  .opt.wrong{ background:#F7E8E3; border-color:var(--stamp); opacity:0.8; }
+  .opt.wrong .letter{ background:var(--stamp); border-color:var(--stamp); color:#fff; }
+  .opt.dim{ opacity:0.40; }
+
+  .feedback{ margin-top:19px; padding:16px 17px; border-radius:11px; font-size:15px; line-height:1.55; display:none; position:relative; }
+  .feedback.show{ display:block; animation: fadeUp 0.25s ease; }
+  .feedback.right{ background:#EAF3EC; border:1px solid var(--euc); }
+  .feedback.miss{ background:#F7E8E3; border:1px solid var(--stamp); }
+  .feedback .verdict{ font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:14px; margin-bottom:4px; display:flex; align-items:center; gap:6px; }
+  .feedback.right .verdict{ color:var(--euc-dark); }
+  .feedback.miss .verdict{ color:var(--stamp-dark); }
+
+  @keyframes fadeUp{ from{ opacity:0; transform:translateY(7px); } to{ opacity:1; transform:translateY(0); } }
+
+  .next-btn, .begin-btn, .again-btn, .start-btn{ font-family:'Space Grotesk', sans-serif; font-weight:700; cursor:pointer; border-radius:10px; }
+  .next-btn{
+    margin-top:18px; width:100%; background:var(--ink); color:var(--paper); border:none; padding:14px; font-size:15px;
+    display:none; align-items:center; justify-content:center; gap:8px; transition: transform 0.1s ease;
+  }
+  .next-btn.show{ display:flex; }
+  .next-btn:hover{ transform: translateY(-1px); }
+  .next-btn:focus-visible{ outline: 3px solid var(--euc); outline-offset:2px; }
+
+  .begin-btn, .start-btn{ background:var(--stamp); color:#fff; border:none; padding:15px 28px; font-size:16px; box-shadow: 3px 3px 0 rgba(140,42,18,0.35); }
+  .begin-btn:hover, .start-btn:hover{ transform: translateY(-1px); }
+  .begin-btn:focus-visible, .start-btn:focus-visible{ outline: 3px solid var(--euc); outline-offset:3px; }
+
+  .stamp-overlay{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:50; }
+  .stamp-mark{
+    width:150px; height:150px; border-radius:50%; border:5px solid var(--stamp); color:var(--stamp);
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:18px; text-transform:uppercase; letter-spacing:0.04em;
+    opacity:0; transform: scale(2.2) rotate(-18deg); background: rgba(251,247,236,0.85);
+  }
+  .stamp-mark.play{ animation: stampDown 0.55s cubic-bezier(.2,1.4,.4,1) forwards; }
+  @keyframes stampDown{
+    0%{ opacity:0; transform: scale(2.4) rotate(-18deg); }
+    55%{ opacity:1; transform: scale(0.92) rotate(-8deg); }
+    75%{ opacity:1; transform: scale(1.05) rotate(-8deg); }
+    100%{ opacity:0; transform: scale(1) rotate(-8deg); }
+  }
+
+  .bolt-intro, .mem-intro{ text-align:center; padding: 18px 6px 6px; }
+  .bolt-intro .icon, .mem-intro .icon{ font-size:44px; }
+  .bolt-intro h2, .mem-intro h2{ font-family:'Space Grotesk', sans-serif; font-size:24px; margin: 8px 0 10px; }
+  .bolt-intro p, .mem-intro p{ color:var(--ink-soft); font-size:14.5px; line-height:1.55; max-width:420px; margin:0 auto 22px; }
+  .bolt-rules, .mem-rules{ display:flex; flex-direction:column; gap:8px; text-align:left; max-width:360px; margin:0 auto 24px; }
+  .bolt-rules li, .mem-rules li{ list-style:none; font-size:13.5px; display:flex; gap:8px; align-items:flex-start; }
+  .bolt-rules li span.ic, .mem-rules li span.ic{ flex-shrink:0; }
+
+  .bolt-header, .mem-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .bolt-score, .mem-score{ font-family:'IBM Plex Mono', monospace; font-size:13px; color:var(--euc-dark); font-weight:600; }
+  .bolt-count, .mem-count{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-soft); }
+
+  .bolt-statement{
+    font-family:'Space Grotesk', sans-serif; font-size:19px; line-height:1.4; text-align:center;
+    padding: 26px 6px 30px; min-height:96px; display:flex; align-items:center; justify-content:center;
+  }
+  .bolt-buttons{ display:flex; gap:12px; }
+  .bolt-btn{
+    flex:1; padding:18px 10px; border-radius:12px; border:2px solid var(--line); background:#fff;
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:16px; cursor:pointer; color:var(--ink);
+    transition: transform 0.08s ease;
+  }
+  .bolt-btn:hover:not(:disabled){ transform: translateY(-1px); }
+  .bolt-btn:focus-visible{ outline: 3px solid var(--euc); outline-offset:2px; }
+  .bolt-btn.true{ border-color: var(--euc); }
+  .bolt-btn.false{ border-color: var(--stamp); }
+  .bolt-btn:disabled{ opacity:0.5; }
+  .bolt-btn.hit{ background:#EAF3EC; border-color:var(--euc); }
+  .bolt-btn.miss{ background:#F7E8E3; border-color:var(--stamp); }
+
+  .bolt-result, .mem-result{ text-align:center; padding: 20px 6px 6px; }
+  .bolt-result .big, .mem-result .big{ font-family:'IBM Plex Mono', monospace; font-size:36px; color:var(--gold); font-weight:600; margin: 8px 0 4px; }
+
+  /****MEMORY MATCH****/
+  .mem-grid{
+    display:grid; grid-template-columns: repeat(3, 1fr); gap:9px; margin-bottom:10px;
+  }
+  .mem-card{
+    aspect-ratio: 1 / 0.82;
+    perspective: 700px;
+    cursor:pointer;
+  }
+  .mem-card.matched{ cursor:default; }
+  .mem-inner{
+    position:relative; width:100%; height:100%;
+    transition: transform 0.45s cubic-bezier(.2,.7,.3,1);
+    transform-style: preserve-3d;
+  }
+  .mem-card.flipped .mem-inner, .mem-card.matched .mem-inner{ transform: rotateY(180deg); }
+  .mem-face{
+    position:absolute; inset:0; backface-visibility:hidden; border-radius:9px;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    padding:6px; font-size:11px; line-height:1.25;
+  }
+  .mem-back{
+    background: linear-gradient(135deg, var(--ink), var(--euc-dark));
+    color: var(--paper);
+    font-family:'Space Grotesk', sans-serif; font-weight:700; font-size:18px;
+  }
+  .mem-front{
+    transform: rotateY(180deg);
+    background:#fff; border:1.5px solid var(--line);
+    font-family:'Inter', sans-serif; font-weight:600; color:var(--ink);
+  }
+  .mem-front.def{ font-weight:500; font-size:10.5px; background:#F4EFDD; }
+  .mem-card.matched .mem-front{ background:#EAF3EC; border-color:var(--euc); color:var(--euc-dark); }
+  .mem-card.wrongflash .mem-front{ background:#F7E8E3; border-color:var(--stamp); }
+
+  .mem-stats{ display:flex; justify-content:space-between; font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--ink-soft); margin-bottom:12px; }
+
+  /****CERTIFICATE****/
+  .certificate{ text-align:center; padding: 14px 4px 6px; }
+  .certificate .rank{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color: var(--euc-dark); }
+  .certificate h2{ font-family:'Space Grotesk', sans-serif; font-size:28px; margin:6px 0 4px; }
+  .score-big{ font-family:'IBM Plex Mono', monospace; font-size:44px; font-weight:600; color:var(--gold); margin: 10px 0 2px; }
+  .score-sub{ color:var(--ink-soft); font-size:13px; margin-bottom:18px; }
+
+  .breakdown{
+    text-align:left; background:var(--paper-dark); border-radius:10px; padding:14px 16px; margin: 0 0 22px;
+    font-family:'IBM Plex Mono', monospace; font-size:12.5px;
+  }
+  .breakdown .row{ display:flex; justify-content:space-between; padding:4px 0; }
+  .breakdown .row.total{ border-top:1px solid var(--line); margin-top:6px; padding-top:8px; font-weight:600; }
+
+  .meter-wrap{ text-align:left; margin: 4px 0 24px; }
+  .meter-wrap .lbl{ display:flex; justify-content:space-between; font-size:12px; color:var(--ink-soft); font-family:'IBM Plex Mono', monospace; margin-bottom:6px; }
+  .meter-track{ height:10px; background:var(--paper-dark); border-radius:6px; overflow:hidden; }
+  .meter-fill{ height:100%; background: linear-gradient(90deg, var(--euc), var(--gold)); border-radius:6px; width:0%; transition: width 1s ease 0.2s; }
+
+  .stamp-row{ display:flex; justify-content:center; gap:14px; margin-bottom:26px; }
+  .again-btn{ background:transparent; border:1.5px solid var(--ink); color:var(--ink); padding:13px 22px; font-size:14px; }
+  .again-btn:hover{ background:var(--ink); color:var(--paper); }
+  .again-btn:focus-visible{ outline: 3px solid var(--euc); outline-offset:2px; }
+
+  footer.note{ text-align:center; font-size:11.5px; color: var(--ink-soft); margin-top:22px; line-height:1.6; padding: 0 10px; }
+
+  @media (max-width: 420px){
+    .brand h1{ font-size:24px; }
+    .card{ padding:20px 16px 20px; }
+    .cover .stages-preview{ grid-template-columns: 1fr; }
+    .stamp-mark{ width:118px; height:118px; font-size:15px; }
+    .bolt-statement{ font-size:17px; }
+    .mem-grid{ grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div class="brand">
+      <span class="eyebrow">Australian Tax &amp; Super · Level 1</span>
+      <h1>Work&nbsp;Passport</h1>
+    </div>
+    <div class="side-stats">
+      <div class="wallet">
+        <div class="label">Balance</div>
+        <div class="amount" id="coinTotal">$0</div>
+      </div>
+      <div class="streak-badge" id="streakBadge"> <span id="streakText">Streak 3 · x1.5</span></div>
+    </div>
+  </header>
+
+  <div class="strip" id="strip"></div>
+
+  <main class="card" id="card">
+    <span class="corner tl" id="cornerTL">No. 000-AU</span>
+    <span class="corner tr" id="cornerTR">Valid: This session</span>
+    <div id="cardInner"></div>
+  </main>
+
+  <footer class="note">
+    Built for a competition entry · Figures reflect Australian tax &amp; super settings for the 2025–26 financial year (source: ATO). This is general information, not financial advice.
+  </footer>
+</div>
+
+<div class="stamp-overlay" id="stampOverlay">
+  <div class="stamp-mark" id="stampMark">Approved</div>
+</div>
+
+<script>
+const STAGES = [
+  {
+    key: "hired", title: "Getting Hired", icon: "1",
+    blurb: "Your first job offer just landed. Before payday, there's paperwork.",
+    questions: [
+      {
+        setup: "New job, first day.",
+        text: "You just got your first casual job. What number do you need to give your employer to avoid paying extra tax?",
+        options: ["Medicare number", "Tax File Number (TFN)", "Driver's licence number", "Your bank's BSB number"],
+        correct: 1,
+        right: "Your TFN identifies you to the ATO. Give it to your employer within 28 days.",
+        wrong: "It's your Tax File Number (TFN) — it identifies you to the ATO, not your bank or Medicare details."
+      },
+      {
+        setup: "Two jobs, one form.",
+        text: "You've got two casual jobs at once. Should you claim the tax-free threshold at both?",
+        options: ["Yes — claim it everywhere for bigger pay", "No — only at the job that pays you the most", "It doesn't matter which one", "You legally can't work two jobs"],
+        correct: 1,
+        right: "The $18,200 tax-free threshold only applies once. Claim it at your main employer only.",
+        wrong: "The $18,200 threshold applies once in total. Claim it at your highest-paying job — claiming it twice means both employers under-withhold, and you'll likely owe money later."
+      },
+      {
+        setup: "Missing paperwork.",
+        text: "What actually happens if you don't give your employer your TFN?",
+        options: ["Nothing changes", "They legally can't hire you", "They must withhold tax at the top rate (47%)", "You get a warning letter"],
+        correct: 2,
+        right: "No TFN means no-TFN withholding kicks in — tax at the top marginal rate, automatically.",
+        wrong: "Without a TFN, your employer must withhold tax at the top marginal rate (47%) on everything you earn — sort it fast to get your rightful pay."
+      },
+      {
+        setup: "Under 18 and working.",
+        text: "You're under 18 and working casual shifts. When are you entitled to super from your employer?",
+        options: ["Never while under 18", "If you work more than 30 hours in a week, regardless of pay", "Only if you personally ask for it", "Only after you turn 18"],
+        correct: 1,
+        right: "Under-18s qualify for super once they work more than 30 hours in a week — no minimum pay threshold applies.",
+        wrong: "Under-18s are entitled to the Super Guarantee if they work more than 30 hours in a week — there's no longer a minimum monthly pay threshold."
+      },
+      {
+        setup: "Starting paperwork.",
+        text: "Which of these is NOT something you actually need to start a new job in Australia?",
+        options: ["A Tax File Number", "Bank account details for pay", "A separate 'employee licence' from the ATO", "Superannuation fund details"],
+        correct: 2,
+        right: "There's no such thing as an 'employee licence' — that one's made up.",
+        wrong: "There's no 'employee licence.' You'll typically provide a TFN, bank details, and super fund details (or your employer checks for a stapled fund)."
+      }
+    ],
+    bonus: {
+      setup: "Stamp Challenge · beat the clock.",
+      text: "Within how many days should you give your employer your TFN, to avoid the top-rate withholding kicking in?",
+      options: ["7 days", "28 days", "60 days", "90 days"],
+      correct: 1,
+      right: "28 days — miss that window and no-TFN withholding applies at the top rate.",
+      wrong: "It's 28 days. After that, your employer must apply no-TFN withholding at the top rate until you provide it.",
+      seconds: 15
+    }
+  },
+  {
+    key: "payslip", title: "First Payslip", icon: "2",
+    blurb: "Payday. Time to actually read the numbers on that payslip.",
+    questions: [
+      {
+        setup: "Reading the numbers.",
+        text: "Your payslip shows Gross pay: $600 and Net pay: $498. What's the $102 gap?",
+        options: ["A processing fee", "PAYG tax withheld", "Your super contribution", "Union fees"],
+        correct: 1,
+        right: "Gross pay is before tax; Net pay is what actually lands in your account.",
+        wrong: "It's PAYG (Pay As You Go) tax, withheld by your employer and sent to the ATO on your behalf. Gross minus tax withheld = net pay."
+      },
+      {
+        setup: "Part-time earnings.",
+        text: "You earn $16,000 this financial year from a part-time job. Roughly how much income tax will you pay?",
+        options: ["About $2,560", "About $1,000", "$0 — you're under the tax-free threshold", "16% of everything"],
+        correct: 2,
+        right: "The first $18,200 you earn each year is tax-free for Australian residents.",
+        wrong: "$0 — the tax-free threshold is $18,200. Earn under that and you owe no income tax, though tax may still have been withheld along the way."
+      },
+      {
+        setup: "Double-checking.",
+        text: "Where can you check that the right amount of tax and super was actually paid on your behalf?",
+        options: ["Ask a friend who works nearby", "Your payslip and myGov (linked to the ATO)", "You can't check", "Wait for a letter in the mail"],
+        correct: 1,
+        right: "Payslips list tax and super paid — myGov shows what's actually landed.",
+        wrong: "Check your payslip and myGov, which is linked to the ATO. It's worth a look every few months, not just at tax time."
+      },
+      {
+        setup: "Habits worth building.",
+        text: "Your payslip shows hours worked, pay rate, and total for the period. Why check these every pay cycle?",
+        options: ["It's pointless — employers never make mistakes", "To confirm you're actually being paid correctly for hours worked", "Only accountants need to check payslips", "It only matters at the end of the year"],
+        correct: 1,
+        right: "Checking each cycle catches errors early — before they turn into months of back-pay chasing.",
+        wrong: "Payslip errors happen — wrong hours, wrong rate, missed shifts. Checking each cycle means small mistakes get fixed fast."
+      },
+      {
+        setup: "A confusing payslip.",
+        text: "Your payslip shows no tax withheld this cycle, even though you earn above $18,200 a year overall. What's most likely going on?",
+        options: ["You're extremely lucky", "This cycle's earnings were low enough that no tax applied yet, pro-rata", "Your employer is required to do this every time", "It means you're self-employed"],
+        correct: 1,
+        right: "Tax is calculated pro-rata per pay cycle — a low cycle can mean $0 withheld even if your annual total is taxable.",
+        wrong: "If that pay cycle's earnings fall under the pro-rata tax-free amount, no tax may be withheld — normal, but keep an eye on your cumulative total across the year."
+      }
+    ],
+    bonus: {
+      setup: "Stamp Challenge · beat the clock.",
+      text: "Your payslip lists 'PAYG' and 'Super Guarantee (SG)' as separate lines. Which is true?",
+      options: ["PAYG comes out of your pay; Super is paid on top", "Both come out of your pay", "Both are paid on top by your employer", "Super comes out of your pay; PAYG is paid on top"],
+      correct: 0,
+      right: "PAYG reduces your take-home pay. Super is an extra employer contribution on top.",
+      wrong: "PAYG tax is withheld from your gross pay. Super Guarantee is paid on top by your employer — it never reduces your take-home pay.",
+      seconds: 15
+    }
+  },
+  {
+    key: "super", title: "Super Time", icon: "",
+    blurb: "There's a second pile of money building up that you can't touch yet — on purpose.",
+    questions: [
+      {
+        setup: "The employer contribution.",
+        text: "On top of your wage, how much must your employer pay into your super fund (2025–26 rate)?",
+        options: ["9%", "10.5%", "12%", "It's optional"],
+        correct: 2,
+        right: "The Super Guarantee reached 12% of your ordinary earnings from 1 July 2025.",
+        wrong: "It's 12% — the Super Guarantee hit its highest-ever, final scheduled level on 1 July 2025, paid on top of your wage, not out of it."
+      },
+      {
+        setup: "Why start young?",
+        text: "You're 18 and just started work. Why does putting money into super matter so much this early?",
+        options: ["It doesn't — you can't touch it for decades anyway", "Compound growth means money invested early has decades to grow", "Super funds pay under-25s a bonus rate", "It reduces your weekly take-home pay"],
+        correct: 1,
+        right: "Money invested at 18 has 40+ years to compound before retirement.",
+        wrong: "Super is invested, and returns compound over time — money that goes in at 18 has decades longer to grow than the same amount added at 40."
+      },
+      {
+        setup: "Three jobs, three funds?",
+        text: "You've had three different casual jobs. What should you check for?",
+        options: ["Nothing — it sorts itself out", "Lost or multiple super accounts, each charging fees", "Whether your employer kept the super", "If you're eligible for a super bonus"],
+        correct: 1,
+        right: "Different jobs can open different super accounts — each one charging its own fees.",
+        wrong: "Check for lost or multiple super accounts via myGov. Each account can charge its own fees, so consolidating into one saves money over time."
+      },
+      {
+        setup: "Checking up on it.",
+        text: "You want to check your super is set up correctly and see your balance. What's a quick way to do that?",
+        options: ["Log into myGov and link the ATO service", "Ask a random person online", "Wait for a phone call from your fund", "You can't check until retirement"],
+        correct: 0,
+        right: "myGov linked to the ATO shows your super accounts, balances, and contributions in one place.",
+        wrong: "myGov, linked to the ATO, is the quick official way to see your super accounts, balances, and contributions."
+      },
+      {
+        setup: "Topping it up.",
+        text: "Can you make extra voluntary contributions to your own super, on top of what your employer pays?",
+        options: ["No — only employers can contribute to super", "Yes — you can make personal voluntary contributions too", "Only after you turn 60", "Only if you're self-employed"],
+        correct: 1,
+        right: "You can add your own voluntary contributions on top of employer payments.",
+        wrong: "Yes — you can make personal voluntary contributions on top of your employer's payments. Some may even be tax-effective, worth a look as your income grows."
+      }
+    ],
+    bonus: {
+      setup: "Stamp Challenge · beat the clock.",
+      text: "You don't actively choose a super fund at your new job. What happens?",
+      options: ["You get no super at all", "Your employer pays into your existing 'stapled' fund from a previous job, if you have one", "Your employer keeps the money", "The ATO picks a random fund each time"],
+      correct: 1,
+      right: "Employers must check for your 'stapled' super fund and pay into that by default.",
+      wrong: "Your employer must check for an existing 'stapled' super fund from a past job and pay into that — this stops new duplicate accounts from opening every time you switch jobs.",
+      seconds: 15
+    }
+  },
+  {
+    key: "taxtime", title: "Tax Time", icon: "",
+    blurb: "Once a year, everything gets reconciled. Here's how that actually works.",
+    questions: [
+      {
+        setup: "The calendar.",
+        text: "Australia's financial year runs from...",
+        options: ["1 Jan to 31 Dec", "1 July to 30 June", "1 April to 31 March", "1 Oct to 30 Sep"],
+        correct: 1,
+        right: "1 July to 30 June — then it's time to lodge your return for that year.",
+        wrong: "It's 1 July to 30 June. Once it ends, that's the year your tax return covers."
+      },
+      {
+        setup: "The deadline.",
+        text: "If you lodge your own tax return (not through an agent), what's the usual deadline?",
+        options: ["30 June", "31 December", "31 October", "Whenever you feel like it"],
+        correct: 2,
+        right: "31 October — using a registered tax agent can extend this, if you sign up before then.",
+        wrong: "31 October is the standard self-lodge deadline. A registered tax agent can extend it, but you generally need to be signed up with them before that date."
+      },
+      {
+        setup: "The reconciliation.",
+        text: "You had tax withheld from every payslip all year, and it turns out you overpaid. What happens?",
+        options: ["Nothing — the ATO keeps it", "You get a refund", "You go to jail", "Your employer pays it back directly"],
+        correct: 1,
+        right: "Lodging your return triggers a refund of whatever you overpaid.",
+        wrong: "You get a refund. Overpaid tax gets returned to you when you lodge; underpaid tax means you'll owe the gap instead."
+      },
+      {
+        setup: "Lowering what you owe.",
+        text: "You want to legitimately reduce how much tax you owe. What's a proper way to do it?",
+        options: ["Hide some of your income", "Claim eligible work-related deductions with receipts", "Ask your employer to under-report your pay", "Just don't lodge a tax return"],
+        correct: 1,
+        right: "Eligible, receipted work-related deductions reduce your taxable income legitimately.",
+        wrong: "Legitimate deductions — work-related expenses you can prove with receipts — reduce your taxable income. Hiding income or skipping your return is tax evasion, not minimisation."
+      },
+      {
+        setup: "Your very first return.",
+        text: "You're not sure how to lodge your first tax return. What's a sensible first step?",
+        options: ["Guess and hope for the best", "Use myTax via myGov (it pre-fills a lot of your info), or a registered tax agent", "Ignore it — tax returns are optional", "Call whoever's cheapest in an ad you saw"],
+        correct: 1,
+        right: "myTax via myGov pre-fills much of your income and super info automatically.",
+        wrong: "myTax via myGov pre-fills a lot of your income and super info from employers and banks — the most common starting point, or ask a registered tax agent."
+      }
+    ],
+    bonus: {
+      setup: "Stamp Challenge · beat the clock.",
+      text: "You work part-time retail and also do freelance design work on the side. At tax time, what do you need to do?",
+      options: ["Nothing — tax returns are automatic", "Declare all income, including cash or freelance work without a payslip", "Only declare the job with a payslip", "Freelance income under $1,000 doesn't count"],
+      correct: 1,
+      right: "All income counts — wages, freelance, side-hustle, cash-in-hand.",
+      wrong: "You must declare all income, not just what shows up on a payment summary. The ATO increasingly cross-checks bank and platform data too.",
+      seconds: 15
+    }
+  }
+];
+
+const LIGHTNING = [
+  { text: "You need a TFN to avoid paying extra tax on your pay.", answer: true, explain: "True — no TFN means top-rate withholding." },
+  { text: "The Super Guarantee rate for 2025–26 is 12%.", answer: true, explain: "True — it reached its final scheduled level on 1 July 2025." },
+  { text: "The Australian financial year runs July to June.", answer: true, explain: "True — 1 July to 30 June." },
+  { text: "'Net pay' means your pay before any tax is taken out.", answer: false, explain: "False — net pay is after tax. Gross pay is before tax." },
+  { text: "You can claim the tax-free threshold at more than one job at once.", answer: false, explain: "False — claim it only at your main employer." },
+  { text: "Super is paid on top of your wage, not out of it.", answer: true, explain: "True — it's an extra employer contribution." },
+  { text: "If you lodge your own tax return, the usual deadline is 31 October.", answer: true, explain: "True — a tax agent can extend this if you sign up in time." },
+  { text: "Cash-in-hand or freelance income doesn't need to be declared at tax time.", answer: false, explain: "False — all income must be declared." },
+  { text: "Checking myGov can help you find lost or forgotten super accounts.", answer: true, explain: "True — and consolidating them saves on fees." },
+  { text: "'Gross pay' and 'net pay' always mean the same amount.", answer: false, explain: "False — gross is before tax, net is what actually lands in your account." }
+];
+
+const MEMORY_A = [
+  { term: "TFN", def: "ID number you give your employer to avoid extra tax withheld" },
+  { term: "PAYG", def: "Tax withheld from your pay and sent to the ATO each cycle" },
+  { term: "Gross pay", def: "What you earn before any tax is taken out" },
+  { term: "Net pay", def: "What actually lands in your bank account after tax" },
+  { term: "Tax-free threshold", def: "$18,200 you can earn each year before paying income tax" },
+  { term: "No-TFN withholding", def: "Top tax rate applied when you haven't given your TFN" }
+];
+
+const MEMORY_B = [
+  { term: "Super Guarantee", def: "12% employer contribution paid on top of your wage" },
+  { term: "Stapled fund", def: "Your existing super fund that follows you to a new job" },
+  { term: "myGov", def: "Where you check your tax and super records online" },
+  { term: "Financial year", def: "The 12 months from 1 July to 30 June" },
+  { term: "Lodge", def: "Submit your tax return to the ATO" },
+  { term: "Tax refund", def: "Money returned to you when you've overpaid tax during the year" }
+];
+
+const RIGHT_VERDICTS = ["Correct!", "Nailed it.", "Spot on.", "That's the one.", "Exactly right.", "Well handled."];
+const MISS_VERDICTS = ["Not quite.", "Close, but no.", "Common mix-up.", "Good guess, wrong pick.", "Not this time."];
+
+let stageIdx = 0;
+let qIdx = 0;
+let coins = 0;
+let correctCount = 0;
+let bonusCoins = 0;
+let lightningCoins = 0;
+let memoryCoins = 0;
+const totalQuestions = STAGES.reduce((n, s) => n + s.questions.length, 0);
+let answered = false;
+let streak = 0;
+let timerInterval = null;
+
+let boltIdx = 0;
+let boltScore = 0;
+let boltTimeLeft = 30;
+let boltInterval = null;
+let boltAnswered = false;
+
+let memCards = [];
+let memFirst = null;
+let memLocked = false;
+let memMatchedCount = 0;
+let memAttempts = 0;
+let memElapsed = 0;
+let memInterval = null;
+let memOnComplete = null;
+let memPairsLen = 0;
+
+const cardInner = document.getElementById('cardInner');
+const stripEl = document.getElementById('strip');
+const coinTotalEl = document.getElementById('coinTotal');
+const cornerTL = document.getElementById('cornerTL');
+const cornerTR = document.getElementById('cornerTR');
+const cardEl = document.getElementById('card');
+const streakBadge = document.getElementById('streakBadge');
+const streakText = document.getElementById('streakText');
+
+function multiplierFor(s){
+  if (s >= 5) return 2;
+  if (s >= 3) return 1.5;
+  return 1;
+}
+
+function clearTimer(){ if (timerInterval){ clearInterval(timerInterval); timerInterval = null; } }
+
+function buildStrip(){
+  stripEl.innerHTML = "";
+  STAGES.forEach((s, i) => {
+    const slot = document.createElement('div');
+    slot.className = 'stamp-slot';
+    slot.id = 'slot-' + i;
+    slot.textContent = i < stageIdx ? '✓' : s.icon;
+    if (i < stageIdx) slot.classList.add('done');
+    else if (i === stageIdx) slot.classList.add('active');
+    stripEl.appendChild(slot);
+    if (i < STAGES.length - 1){
+      const seg = document.createElement('div');
+      seg.className = 'seg';
+      stripEl.appendChild(seg);
+    }
+  });
+}
+
+function updateWallet(){
+  coinTotalEl.textContent = "$" + coins;
+  const m = multiplierFor(streak);
+  if (streak >= 3){
+    streakBadge.classList.add('show');
+    streakText.textContent = "Streak " + streak + " · x" + m;
+  } else {
+    streakBadge.classList.remove('show');
+  }
+}
+
+function renderCover(){
+  cardEl.classList.remove('hot','brainy');
+  cornerTL.textContent = "No. 001-AU";
+  cornerTR.textContent = "Status: Unopened";
+  cardInner.innerHTML =
+    '<div class="cover">' +
+      '<div class="icon"></div>' +
+      '<h2>Money&nbsp;Moves</h2>' +
+      '<p>You\'ve just landed your first job in Australia. Before the money starts moving, work through four real-world stages — get each one right to earn your stamp and build your Work Passport.</p>' +
+      '<div class="stages-preview">' +
+        STAGES.map((s,i) => '<div class="mini-stage"><div class="num">' + String(i+1).padStart(2,'0') + ' · ' + s.icon + '</div><div class="title">' + s.title + '</div></div>').join('') +
+      '</div>' +
+      '<div class="mechanics">' +
+        '<span class="mech-chip"> Streak multiplier</span>' +
+        '<span class="mech-chip stamp"> Timed Stamp Challenges</span>' +
+        '<span class="mech-chip"> Memory Match rounds</span>' +
+        '<span class="mech-chip gold"> Lightning Round finale</span>' +
+      '</div>' +
+      '<button class="begin-btn" id="beginBtn">Begin Your Journey →</button>' +
+    '</div>';
+  document.getElementById('beginBtn').addEventListener('click', () => {
+    stageIdx = 0; qIdx = 0;
+    renderQuestion();
+  });
+}
+
+function renderQuestion(){
+  answered = false;
+  cardEl.classList.remove('hot','brainy');
+  buildStrip();
+  const stage = STAGES[stageIdx];
+  const q = stage.questions[qIdx];
+  cornerTL.textContent = "No. " + String(101 + stageIdx).padStart(3,'0') + "-AU";
+  cornerTR.textContent = "Stage " + (stageIdx+1) + " of " + STAGES.length;
+
+  const letters = ['A','B','C','D'];
+  cardInner.innerHTML =
+    '<div class="stage-head"><span class="badge">' + stage.icon + ' ' + stage.title + '</span></div>' +
+    '<div class="q-progress">Question ' + (qIdx+1) + ' of ' + stage.questions.length + ' · ' + stage.blurb + '</div>' +
+    '<div class="scenario"><span class="setup">' + q.setup + '</span>' + q.text + '</div>' +
+    '<div class="options" id="optionsWrap">' +
+      q.options.map((opt,i) => '<button class="opt" data-idx="' + i + '"><span class="letter">' + letters[i] + '</span><span>' + opt + '</span></button>').join('') +
+    '</div>' +
+    '<div class="feedback" id="feedback"><div class="verdict" id="verdictText"></div><div id="explainText"></div></div>' +
+    '<button class="next-btn" id="nextBtn">Continue →</button>';
+
+  document.querySelectorAll('.opt').forEach(btn => {
+    btn.addEventListener('click', () => handleAnswer(parseInt(btn.dataset.idx, 10)));
+  });
+  document.getElementById('nextBtn').addEventListener('click', advance);
+}
+
+function handleAnswer(idx){
+  if (answered) return;
+  answered = true;
+  const stage = STAGES[stageIdx];
+  const q = stage.questions[qIdx];
+  const opts = document.querySelectorAll('.opt');
+  const isRight = idx === q.correct;
+
+  opts.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.correct) btn.classList.add('correct');
+    else if (i === idx) btn.classList.add('wrong');
+    else btn.classList.add('dim');
+  });
+
+  const fb = document.getElementById('feedback');
+  const verdictEl = document.getElementById('verdictText');
+  const explainEl = document.getElementById('explainText');
+  fb.classList.remove('right','miss');
+
+  if (isRight){
+    const mult = multiplierFor(streak);
+    const award = Math.round(10 * mult);
+    coins += award;
+    correctCount += 1;
+    streak += 1;
+    updateWallet();
+    fb.classList.add('right','show');
+    verdictEl.innerHTML = "✓ " + RIGHT_VERDICTS[Math.floor(Math.random()*RIGHT_VERDICTS.length)] + (mult > 1 ? " (+" + award + ", x" + mult + " streak)" : " (+" + award + ")");
+    explainEl.textContent = q.right;
+  } else {
+    streak = 0;
+    updateWallet();
+    fb.classList.add('miss','show');
+    verdictEl.innerHTML = "✕ " + MISS_VERDICTS[Math.floor(Math.random()*MISS_VERDICTS.length)];
+    explainEl.textContent = q.wrong;
+  }
+
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function advance(){
+  const stage = STAGES[stageIdx];
+  if (qIdx < stage.questions.length - 1){
+    qIdx += 1;
+    renderQuestion();
+  } else {
+    renderBonus(stage);
+  }
+}
+
+function renderBonus(stage){
+  answered = false;
+  cardEl.classList.remove('brainy');
+  cardEl.classList.add('hot');
+  cornerTL.textContent = "No. " + String(150 + stageIdx).padStart(3,'0') + "-AU";
+  cornerTR.textContent = "Bonus Round";
+  const b = stage.bonus;
+  const letters = ['A','B','C','D'];
+
+  cardInner.innerHTML =
+    '<div class="stage-head"><span class="badge hot">⚡ ' + stage.icon + ' ' + stage.title + ' — Stamp Challenge</span></div>' +
+    '<div class="q-progress">Harder question. Beat the clock for bonus coins.</div>' +
+    '<div class="timer-wrap"><div class="timer-lbl"><span id="timerSeconds">' + b.seconds + 's</span><span>⏱ Answer before time runs out</span></div><div class="timer-track"><div class="timer-fill" id="timerFill"></div></div></div>' +
+    '<div class="scenario"><span class="setup">' + b.setup + '</span>' + b.text + '</div>' +
+    '<div class="options" id="optionsWrap">' +
+      b.options.map((opt,i) => '<button class="opt" data-idx="' + i + '"><span class="letter">' + letters[i] + '</span><span>' + opt + '</span></button>').join('') +
+    '</div>' +
+    '<div class="feedback" id="feedback"><div class="verdict" id="verdictText"></div><div id="explainText"></div></div>' +
+    '<button class="next-btn" id="nextBtn">Continue →</button>';
+
+  document.querySelectorAll('.opt').forEach(btn => {
+    btn.addEventListener('click', () => handleBonusAnswer(parseInt(btn.dataset.idx, 10), b));
+  });
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    clearTimer();
+    finishStage(stage);
+  });
+
+  const totalMs = b.seconds * 1000;
+  let remaining = totalMs;
+  const fill = document.getElementById('timerFill');
+  const secLabel = document.getElementById('timerSeconds');
+  clearTimer();
+  timerInterval = setInterval(() => {
+    remaining -= 100;
+    if (remaining <= 0){
+      remaining = 0;
+      clearTimer();
+      handleBonusTimeout(b);
+    }
+    fill.style.width = (remaining / totalMs * 100) + "%";
+    secLabel.textContent = Math.ceil(remaining/1000) + "s";
+  }, 100);
+}
+
+function handleBonusAnswer(idx, b){
+  if (answered) return;
+  answered = true;
+  clearTimer();
+  const opts = document.querySelectorAll('.opt');
+  const isRight = idx === b.correct;
+  opts.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === b.correct) btn.classList.add('correct');
+    else if (i === idx) btn.classList.add('wrong');
+    else btn.classList.add('dim');
+  });
+  const fb = document.getElementById('feedback');
+  const verdictEl = document.getElementById('verdictText');
+  const explainEl = document.getElementById('explainText');
+  fb.classList.remove('right','miss');
+  if (isRight){
+    coins += 25;
+    bonusCoins += 25;
+    updateWallet();
+    fb.classList.add('right','show');
+    verdictEl.innerHTML = "✓ Stamp Challenge cleared! (+25)";
+    explainEl.textContent = b.right;
+  } else {
+    fb.classList.add('miss','show');
+    verdictEl.innerHTML = "✕ Missed it this time.";
+    explainEl.textContent = b.wrong;
+  }
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function handleBonusTimeout(b){
+  if (answered) return;
+  answered = true;
+  const opts = document.querySelectorAll('.opt');
+  opts.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === b.correct) btn.classList.add('correct');
+    else btn.classList.add('dim');
+  });
+  const fb = document.getElementById('feedback');
+  const verdictEl = document.getElementById('verdictText');
+  const explainEl = document.getElementById('explainText');
+  fb.classList.remove('right','miss');
+  fb.classList.add('miss','show');
+  verdictEl.innerHTML = "Time's up!";
+  explainEl.textContent = b.right;
+  document.getElementById('nextBtn').classList.add('show');
+}
+
+function finishStage(stage){
+  cardEl.classList.remove('hot');
+  playStamp(stage.title);
+  stageIdx += 1;
+  qIdx = 0;
+  if (stageIdx === 2){
+    setTimeout(() => renderMemoryIntro('A'), 650);
+  } else if (stageIdx >= STAGES.length){
+    setTimeout(() => renderMemoryIntro('B'), 650);
+  } else {
+    setTimeout(renderQuestion, 650);
+  }
+}
+
+function playStamp(label){
+  const mark = document.getElementById('stampMark');
+  mark.textContent = label + " ✓";
+  mark.classList.remove('play');
+  void mark.offsetWidth;
+  mark.classList.add('play');
+}
+
+/****MEMORY MATCH****/
+function renderMemoryIntro(roundKey){
+  buildStrip();
+  cardEl.classList.remove('hot');
+  cardEl.classList.add('brainy');
+  const pairs = roundKey === 'A' ? MEMORY_A : MEMORY_B;
+  cornerTL.textContent = "No. " + (roundKey === 'A' ? "170" : "195") + "-AU";
+  cornerTR.textContent = "Memory Match " + roundKey;
+  const label = roundKey === 'A' ? "Getting Hired & First Payslip" : "Super & Tax Time";
+  cardInner.innerHTML =
+    '<div class="mem-intro">' +
+      '<div class="icon"></div>' +
+      '<h2>Memory Match: Round ' + roundKey + '</h2>' +
+      '<p>Flip cards to pair each term with its meaning from ' + label + '. Match all ' + pairs.length + ' pairs to earn coins — finish fast for a speed bonus.</p>' +
+      '<ul class="mem-rules">' +
+        '<li><span class="ic"></span> +10 coins for every pair you match</li>' +
+        '<li><span class="ic"></span> Finish in 45 seconds or less for a +20 speed bonus</li>' +
+        '<li><span class="ic"></span> No move limit — take the time you need</li>' +
+      '</ul>' +
+      '<button class="start-btn" id="memStartBtn">Start Memory Match </button>' +
+    '</div>';
+  document.getElementById('memStartBtn').addEventListener('click', () => startMemory(roundKey));
+}
+
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startMemory(roundKey){
+  const pairs = roundKey === 'A' ? MEMORY_A : MEMORY_B;
+  memPairsLen = pairs.length;
+  let raw = [];
+  pairs.forEach((p, i) => {
+    raw.push({ uid: 't'+i, pairId: i, label: p.term, type: 'term' });
+    raw.push({ uid: 'd'+i, pairId: i, label: p.def, type: 'def' });
+  });
+  memCards = shuffle(raw);
+  memFirst = null;
+  memLocked = false;
+  memMatchedCount = 0;
+  memAttempts = 0;
+  memElapsed = 0;
+  memOnComplete = roundKey === 'A' ? renderQuestion : renderBoltIntro;
+
+  renderMemoryGrid();
+  clearInterval(memInterval);
+  memInterval = setInterval(() => {
+    memElapsed += 1;
+    const t = document.getElementById('memTimer');
+    if (t) t.textContent = formatTime(memElapsed);
+  }, 1000);
+}
+
+function formatTime(sec){
+  const m = Math.floor(sec/60);
+  const s = sec % 60;
+  return m + ":" + String(s).padStart(2,'0');
+}
+
+function renderMemoryGrid(){
+  cornerTR.textContent = "Pairs " + memMatchedCount + " / " + memPairsLen;
+  cardInner.innerHTML =
+    '<div class="mem-header"><span class="mem-score">' + memMatchedCount + ' / ' + memPairsLen + ' matched</span><span class="mem-count" id="memTimer">' + formatTime(memElapsed) + '</span></div>' +
+    '<div class="mem-grid" id="memGrid"></div>' +
+    '<div class="mem-stats"><span>Attempts: <span id="memAttempts">' + memAttempts + '</span></span><span>Tip: watch, remember, match</span></div>';
+
+  const grid = document.getElementById('memGrid');
+  memCards.forEach(card => {
+    const el = document.createElement('div');
+    el.className = 'mem-card';
+    el.id = 'mem-' + card.uid;
+    el.innerHTML =
+      '<div class="mem-inner">' +
+        '<div class="mem-face mem-back">?</div>' +
+        '<div class="mem-face mem-front ' + (card.type === 'def' ? 'def' : '') + '">' + card.label + '</div>' +
+      '</div>';
+    el.addEventListener('click', () => handleMemClick(card.uid));
+    grid.appendChild(el);
+  });
+}
+
+function handleMemClick(uid){
+  if (memLocked) return;
+  const card = memCards.find(c => c.uid === uid);
+  if (!card || card.matched || card.flipped) return;
+
+  card.flipped = true;
+  document.getElementById('mem-' + uid).classList.add('flipped');
+
+  if (!memFirst){
+    memFirst = card;
+    return;
+  }
+
+  memLocked = true;
+  memAttempts += 1;
+  const attEl = document.getElementById('memAttempts');
+  if (attEl) attEl.textContent = memAttempts;
+
+  const second = card;
+  if (memFirst.pairId === second.pairId){
+    memFirst.matched = true;
+    second.matched = true;
+    document.getElementById('mem-' + memFirst.uid).classList.add('matched');
+    document.getElementById('mem-' + second.uid).classList.add('matched');
+    memMatchedCount += 1;
+    coins += 10;
+    memoryCoins += 10;
+    updateWallet();
+    const scoreEl = document.querySelector('.mem-score');
+    if (scoreEl) scoreEl.textContent = memMatchedCount + " / " + memPairsLen + " matched";
+    cornerTR.textContent = "Pairs " + memMatchedCount + " / " + memPairsLen;
+    memFirst = null;
+    memLocked = false;
+    if (memMatchedCount >= memPairsLen){
+      clearInterval(memInterval);
+      setTimeout(renderMemoryResult, 500);
+    }
+  } else {
+    const el1 = document.getElementById('mem-' + memFirst.uid);
+    const el2 = document.getElementById('mem-' + second.uid);
+    el1.classList.add('wrongflash');
+    el2.classList.add('wrongflash');
+    setTimeout(() => {
+      memFirst.flipped = false;
+      second.flipped = false;
+      el1.classList.remove('flipped','wrongflash');
+      el2.classList.remove('flipped','wrongflash');
+      memFirst = null;
+      memLocked = false;
+    }, 800);
+  }
+}
+
+function renderMemoryResult(){
+  clearInterval(memInterval);
+  const speedBonus = memElapsed <= 45;
+  if (speedBonus){
+    coins += 20;
+    memoryCoins += 20;
+    updateWallet();
+  }
+  cornerTR.textContent = "Memory Match Complete";
+  cardInner.innerHTML =
+    '<div class="mem-result">' +
+      '<div class="icon"></div>' +
+      '<div class="big">' + memPairsLen + ' / ' + memPairsLen + '</div>' +
+      '<div class="score-sub">all pairs matched in ' + formatTime(memElapsed) + ' · ' + memAttempts + ' attempts' + (speedBonus ? ' · +20 speed bonus!' : '') + '</div>' +
+      '<button class="next-btn show" id="memContinueBtn">Continue →</button>' +
+    '</div>';
+  document.getElementById('memContinueBtn').addEventListener('click', () => {
+    cardEl.classList.remove('brainy');
+    if (memOnComplete) memOnComplete();
+  });
+}
+
+/****LIGHTNING ROUND****/
+function renderBoltIntro(){
+  buildStrip();
+  cardEl.classList.remove('hot','brainy');
+  cornerTL.textContent = "No. 190-AU";
+  cornerTR.textContent = "Final Round";
+  cardInner.innerHTML =
+    '<div class="bolt-intro">' +
+      '<div class="icon">⚡</div>' +
+      '<h2>Lightning Round</h2>' +
+      '<p>Ten quickfire statements about tax and super. Myth or fact — tap as fast as you can before the 30-second clock runs out.</p>' +
+      '<ul class="bolt-rules">' +
+        '<li><span class="ic"></span> +5 coins for every correct call</li>' +
+        '<li><span class="ic"></span> One shared 30-second clock for all ten</li>' +
+        '<li><span class="ic"></span> No penalty for a wrong guess — just keep moving</li>' +
+      '</ul>' +
+      '<button class="start-btn" id="boltStartBtn">Start Lightning Round ⚡</button>' +
+    '</div>';
+  document.getElementById('boltStartBtn').addEventListener('click', startBolt);
+}
+
+function startBolt(){
+  boltIdx = 0;
+  boltScore = 0;
+  boltTimeLeft = 30;
+  renderBoltPlay();
+  clearInterval(boltInterval);
+  boltInterval = setInterval(() => {
+    boltTimeLeft -= 1;
+    const tEl = document.getElementById('boltTimer');
+    const tFill = document.getElementById('boltTimerFill');
+    if (tEl) tEl.textContent = boltTimeLeft + "s";
+    if (tFill) tFill.style.width = (boltTimeLeft/30*100) + "%";
+    if (boltTimeLeft <= 0){
+      clearInterval(boltInterval);
+      renderBoltResult();
+    }
+  }, 1000);
+}
+
+function renderBoltPlay(){
+  boltAnswered = false;
+  cornerTR.textContent = "Item " + (boltIdx+1) + " of " + LIGHTNING.length;
+  const item = LIGHTNING[boltIdx];
+  cardInner.innerHTML =
+    '<div class="bolt-header">' +
+      '<span class="bolt-score">💰 ' + boltScore + ' correct</span>' +
+      '<span class="bolt-count">' + (boltIdx+1) + ' / ' + LIGHTNING.length + '</span>' +
+    '</div>' +
+    '<div class="timer-wrap"><div class="timer-lbl"><span id="boltTimer">' + boltTimeLeft + 's</span><span>⚡ Myth or fact?</span></div><div class="timer-track"><div class="timer-fill" id="boltTimerFill" style="width:' + (boltTimeLeft/30*100) + '%"></div></div></div>' +
+    '<div class="bolt-statement">"' + item.text + '"</div>' +
+    '<div class="bolt-buttons">' +
+      '<button class="bolt-btn true" id="btnTrue">TRUE</button>' +
+      '<button class="bolt-btn false" id="btnFalse">FALSE</button>' +
+    '</div>' +
+    '<div class="feedback" id="feedback"><div class="verdict" id="verdictText"></div><div id="explainText"></div></div>';
+
+  document.getElementById('btnTrue').addEventListener('click', () => handleBolt(true));
+  document.getElementById('btnFalse').addEventListener('click', () => handleBolt(false));
+}
+
+function handleBolt(guess){
+  if (boltAnswered || boltTimeLeft <= 0) return;
+  boltAnswered = true;
+  const item = LIGHTNING[boltIdx];
+  const isRight = guess === item.answer;
+  const trueBtn = document.getElementById('btnTrue');
+  const falseBtn = document.getElementById('btnFalse');
+  trueBtn.disabled = true; falseBtn.disabled = true;
+  const chosenBtn = guess ? trueBtn : falseBtn;
+  chosenBtn.classList.add(isRight ? 'hit' : 'miss');
+
+  if (isRight){
+    boltScore += 1;
+    coins += 5;
+    lightningCoins += 5;
+    updateWallet();
+  }
+
+  const fb = document.getElementById('feedback');
+  const verdictEl = document.getElementById('verdictText');
+  const explainEl = document.getElementById('explainText');
+  fb.classList.remove('right','miss');
+  fb.classList.add(isRight ? 'right' : 'miss', 'show');
+  verdictEl.textContent = isRight ? "✓ Correct" : "✕ Not quite";
+  explainEl.textContent = item.explain;
+
+  setTimeout(() => {
+    if (boltTimeLeft <= 0) return;
+    boltIdx += 1;
+    if (boltIdx >= LIGHTNING.length){
+      clearInterval(boltInterval);
+      renderBoltResult();
+    } else {
+      renderBoltPlay();
+    }
+  }, 700);
+}
+
+function renderBoltResult(){
+  clearInterval(boltInterval);
+  cornerTR.textContent = "Final Round Complete";
+  cardInner.innerHTML =
+    '<div class="bolt-result">' +
+      '<div class="icon">⚡</div>' +
+      '<div class="big">' + boltScore + ' / ' + LIGHTNING.length + '</div>' +
+      '<div class="score-sub">correct calls · +' + lightningCoins + ' coins earned</div>' +
+      '<button class="next-btn show" id="toCertBtn">See Your Passport →</button>' +
+    '</div>';
+  document.getElementById('toCertBtn').addEventListener('click', renderCertificate);
+}
+
+function rankFor(pct){
+  if (pct === 100) return "Certified Money Mover";
+  if (pct >= 75) return "Super Star";
+  if (pct >= 50) return "Junior Taxpayer";
+  return "First Payslip Rookie";
+}
+
+function renderCertificate(){
+  buildStrip();
+  cardEl.classList.remove('hot','brainy');
+  cornerTL.textContent = "No. 200-AU";
+  cornerTR.textContent = "Status: Complete";
+  const pct = Math.round((correctCount / totalQuestions) * 100);
+  const rank = rankFor(pct);
+  const coreCoins = coins - bonusCoins - lightningCoins - memoryCoins;
+
+  cardInner.innerHTML =
+    '<div class="certificate">' +
+      '<div class="rank">Work Passport · Fully Stamped</div>' +
+      '<h2>' + rank + '</h2>' +
+      '<div class="score-big">$' + coins + '</div>' +
+      '<div class="score-sub">' + correctCount + ' of ' + totalQuestions + ' core questions correct · ' + boltScore + '/' + LIGHTNING.length + ' lightning round</div>' +
+
+      '<div class="breakdown">' +
+        '<div class="row"><span>Core questions</span><span>$' + coreCoins + '</span></div>' +
+        '<div class="row"><span>Stamp Challenges</span><span>$' + bonusCoins + '</span></div>' +
+        '<div class="row"><span>Memory Match rounds</span><span>$' + memoryCoins + '</span></div>' +
+        '<div class="row"><span>Lightning Round</span><span>$' + lightningCoins + '</span></div>' +
+        '<div class="row total"><span>Total earned</span><span>$' + coins + '</span></div>' +
+      '</div>' +
+
+      '<div class="stamp-row">' + STAGES.map(s => '<div style="font-size:26px;">' + s.icon + '</div>').join('') + '</div>' +
+
+      '<div class="meter-wrap"><div class="lbl"><span>Financial confidence</span><span>' + pct + '%</span></div><div class="meter-track"><div class="meter-fill" id="meterFill"></div></div></div>' +
+
+      '<button class="again-btn" id="againBtn">Play Again ↺</button>' +
+    '</div>';
+
+  setTimeout(() => {
+    const fill = document.getElementById('meterFill');
+    if (fill) fill.style.width = pct + "%";
+  }, 50);
+  document.getElementById('againBtn').addEventListener('click', () => {
+    stageIdx = 0; qIdx = 0; coins = 0; correctCount = 0; bonusCoins = 0; lightningCoins = 0; memoryCoins = 0; streak = 0;
+    updateWallet();
+    renderCover();
+  });
+}
+
+buildStrip();
+updateWallet();
+renderCover();
+</script>
+</body>
+</html>
